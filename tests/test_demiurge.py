@@ -11,6 +11,7 @@ HTML_INDEX_RELATIVE = """
 <html>
     <body>
         <a class="link" href="links">Link text.</a>
+        <a class="link" href="links2">Link 2 text.</a>
     </body>
 </html>
 """
@@ -71,11 +72,10 @@ class TestItemWithClean(demiurge.Item):
 
 
 class TestIndexItem(demiurge.Item):
-    items_following_link = demiurge.RelatedItem(TestItem, attr='href')
+    items_following_link = demiurge.RelatedItem(TestItem, selector='a', attr='href')
 
     class Meta:
         base_url = 'http://localhost'
-        selector = "a"
 
 
 class TestInnerItem(demiurge.Item):
@@ -158,15 +158,15 @@ class TestDemiurge(unittest.TestCase):
 
     def test_no_selector_uses_whole_html(self):
         self.mock_opener.return_value = "<html><body><p>body</p></body></html>"
-        items = TestItemNoSelector.one()
-        self.assertEqual(items.html, '<body><p>body</p></body>')
+        item = TestItemNoSelector.one()
+        self.assertEqual(item.html, '<body><p>body</p></body>')
 
     def test_item_clean(self):
         item = TestItemWithClean.one()
         self.assertEqual(item.label, 'LINK TEXT.')
 
     def test_relateditem_following_link(self):
-        self.mock_opener.side_effect = [HTML_INDEX_RELATIVE, HTML_SAMPLE]
+        self.mock_opener.side_effect = [HTML_INDEX_RELATIVE, HTML_SAMPLE, HTML_SAMPLE]
 
         index = TestIndexItem.one()
         calls = self.mock_opener.call_args_list
@@ -174,15 +174,16 @@ class TestDemiurge(unittest.TestCase):
 
         links = index.items_following_link
         calls = self.mock_opener.call_args_list
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 3)
         # second call follows relative link
         self.assertEqual(calls[1][0][0], 'http://localhost/links')
+        self.assertEqual(calls[2][0][0], 'http://localhost/links2')
 
         self.assertEqual(len(links), 2)
-        self.assertEqual(links[0].label, 'Link text.')
-        self.assertEqual(links[0].url, 'http://github.com/matiasb')
-        self.assertEqual(links[1].label, 'Another link.')
-        self.assertEqual(links[1].url, 'http://github.com/matiasb/demiurge')
+        self.assertEqual(links[0][0].label, 'Link text.')
+        self.assertEqual(links[0][0].url, 'http://github.com/matiasb')
+        self.assertEqual(links[0][1].label, 'Another link.')
+        self.assertEqual(links[0][1].url, 'http://github.com/matiasb/demiurge')
 
     def test_relateditem_following_absolute_link(self):
         self.mock_opener.side_effect = [HTML_INDEX_ABSOLUTE, HTML_SAMPLE]
