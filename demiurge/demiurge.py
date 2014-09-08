@@ -120,10 +120,10 @@ class RelatedItem(object):
     def __get__(self, instance, owner):
         value = instance.__dict__.get(self.label, None)
         if value is None:
+            value = []
             # default: use given item object as base
             source = instance._pq
 
-            import ipdb; ipdb.set_trace()
             if self.selector:
                 # if selector provided, traversing from the item
                 source = source(self.selector)
@@ -132,8 +132,8 @@ class RelatedItem(object):
                 # if attr is provided,
                 # assume we are searching for urls to follow
                 source = [self._build_url(instance, e.attr(self.attr)) for e in source.items()]
-
-            value = [self.item.all_from(s) for s in source]
+            for s in source:
+                value += self.item.all_from(s)
             instance.__dict__[self.label] = value
         return value
 

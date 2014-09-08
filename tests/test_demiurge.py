@@ -165,7 +165,7 @@ class TestDemiurge(unittest.TestCase):
         item = TestItemWithClean.one()
         self.assertEqual(item.label, 'LINK TEXT.')
 
-    def test_relateditem_following_link(self):
+    def test_relateditem_following_links(self):
         self.mock_opener.side_effect = [HTML_INDEX_RELATIVE, HTML_SAMPLE, HTML_SAMPLE]
 
         index = TestIndexItem.one()
@@ -179,11 +179,15 @@ class TestDemiurge(unittest.TestCase):
         self.assertEqual(calls[1][0][0], 'http://localhost/links')
         self.assertEqual(calls[2][0][0], 'http://localhost/links2')
 
-        self.assertEqual(len(links), 2)
-        self.assertEqual(links[0][0].label, 'Link text.')
-        self.assertEqual(links[0][0].url, 'http://github.com/matiasb')
-        self.assertEqual(links[0][1].label, 'Another link.')
-        self.assertEqual(links[0][1].url, 'http://github.com/matiasb/demiurge')
+        self.assertEqual(len(links), 4)
+        self.assertEqual(links[0].label, 'Link text.')
+        self.assertEqual(links[0].url, 'http://github.com/matiasb')
+        self.assertEqual(links[1].label, 'Another link.')
+        self.assertEqual(links[1].url, 'http://github.com/matiasb/demiurge')
+        self.assertEqual(links[2].label, 'Link text.')
+        self.assertEqual(links[2].url, 'http://github.com/matiasb')
+        self.assertEqual(links[3].label, 'Another link.')
+        self.assertEqual(links[3].url, 'http://github.com/matiasb/demiurge')
 
     def test_relateditem_following_absolute_link(self):
         self.mock_opener.side_effect = [HTML_INDEX_ABSOLUTE, HTML_SAMPLE]
