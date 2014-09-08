@@ -120,21 +120,20 @@ class RelatedItem(object):
     def __get__(self, instance, owner):
         value = instance.__dict__.get(self.label, None)
         if value is None:
+            value = []
             # default: use given item object as base
             source = instance._pq
 
             if self.selector:
                 # if selector provided, traversing from the item
-                source = source(self.selector).eq(0)
+                source = source(self.selector)
 
             if self.attr:
                 # if attr is provided,
-                # assume we are searching for an url to follow
-                html_elem = source[0]
-                path = html_elem.get(self.attr)
-                source = self._build_url(instance, path)
-
-            value = self.item.all_from(source)
+                # assume we are searching for urls to follow
+                source = [self._build_url(instance, e.attr(self.attr)) for e in source.items()]
+            for s in source:
+                value += self.item.all_from(s)
             instance.__dict__[self.label] = value
         return value
 
